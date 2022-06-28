@@ -1,0 +1,5 @@
+output/*
+docs-tanner-pod.yaml
+
+src/*
+!src/Dockerfile

@@ -1,0 +1,54 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    app: tanner-web-pod
+  name: tanner-web-pod
+  annotations:
+    seccomp.security.alpha.kubernetes.io/pod: localhost/default.json
+spec:
+  restartPolicy: Never #OnFailure
+  hostNetwork: true
+  containers:
+  - name: srv01
+    image: localhost/extra2000/mushorg/tanner
+    command: ["/usr/bin/tannerweb"]
+    args: ["--config", "/opt/tanner/tanner/data/config.yaml"]
+    securityContext:
+      allowPrivilegeEscalation: false
+      privileged: false
+      capabilities:
+        add: []
+        drop:
+        - CAP_MKNOD
+        - CAP_NET_RAW
+        - CAP_AUDIT_WRITE
+      seLinuxOptions:
+        type: tanner_web_podman.process
+    resources:
+      requests:
+        memory: 100Mi
+        cpu: 1000m
+      limits:
+        memory: 100Mi
+        cpu: 1000m
+    volumeMounts:
+    - mountPath: /tmp/tanner
+      name: tanner-web-tmp
+      readOnly: false
+    - mountPath: /var/log/tanner
+      name: tanner-web-log
+      readOnly: false
+    - mountPath: /opt/tanner/tanner/data/config.yaml
+      name: tanner-cfg
+      readOnly: true
+  volumes:
+  - name: tanner-web-tmp
+    persistentVolumeClaim:
+      claimName: tanner-web-tmp
+  - name: tanner-web-log
+    persistentVolumeClaim:
+      claimName: tanner-web-log
+  - name: tanner-cfg
+    hostPath:
+      path: ./configs/config.yaml
